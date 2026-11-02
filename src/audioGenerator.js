@@ -1,17 +1,25 @@
 /**
- * Audio Generator
- * Uses Google TTS (node-gtts) with offline fallback to generate voiceover MP3
+ * Professional Studio Audio Generator
+ * Uses Microsoft Edge Neural Human Voice Models (Authentic Female Presenters)
+ * Supported Female Voices:
+ *  - en-IN-NeerjaNeural (Warm Indian Professional Female Presenter)
+ *  - en-US-JennyNeural  (Sophisticated US Female Presenter)
+ *  - en-US-AriaNeural   (Expressive Luxury Brand Female Presenter)
  */
 
 const path = require('path');
 const fs = require('fs');
+const ffprobeInstaller = require('@ffprobe-installer/ffprobe');
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfprobePath(ffprobeInstaller.path);
+
+const DEFAULT_FEMALE_VOICE = 'en-IN-NeerjaNeural';
 
 /**
- * Format raw script text into clean, natural spoken English
+ * Format raw property text into natural, spoken English
  */
 function cleanTextForSpeech(text) {
   if (!text) return '';
@@ -32,58 +40,71 @@ function cleanTextForSpeech(text) {
 }
 
 /**
- * Generate a voiceover MP3 from text using Google TTS
+ * Generate human female studio voiceover for a single scene
+ * @param {string} text - Voiceover sentence for this scene
+ * @param {string} outputPath - MP3 file destination
+ * @param {string} voice - Neural female voice identifier
+ * @returns {Promise<{ path: string, duration: number }>}
  */
-function generateVoiceover(text, outputPath, lang = 'en') {
+async function generateSceneVoiceover(text, outputPath, voice = DEFAULT_FEMALE_VOICE) {
+  const clean = cleanTextForSpeech(text);
+  if (!clean) {
+    throw new Error('Scene text is empty');
+  }
+
+  try {
+    const { EdgeTTS } = require('node-edge-tts');
+    const tts = new EdgeTTS({ voice });
+    await tts.ttsPromise(clean, outputPath);
+
+    // Measure exact audio duration
+    const duration = await getAudioDuration(outputPath);
+    return { path: outputPath, duration };
+  } catch (err) {
+    console.warn(`  ⚠️ EdgeTTS warning for "${clean.substring(0, 30)}...":`, err.message);
+    // Fallback: Google TTS
+    return fallbackGoogleTTS(clean, outputPath);
+  }
+}
+
+/**
+ * Fallback to Google TTS if offline or network issue
+ */
+function fallbackGoogleTTS(text, outputPath) {
   return new Promise((resolve, reject) => {
     try {
-      const gTTS = require('node-gtts');
-      const gtts = gTTS(lang);
-      const cleanText = cleanTextForSpeech(text);
-
-      if (!cleanText) {
-        return reject(new Error('Voiceover text is empty'));
-      }
-
-      console.log(`  🎙️  Synthesizing voiceover (${cleanText.length} chars)...`);
-
-      gtts.save(outputPath, cleanText, (err) => {
-        if (err) {
-          console.warn('  ⚠️  Google TTS failed, falling back to local ambient audio:', err.message);
-          return generateAmbientFallback(outputPath, 33).then(resolve).catch(reject);
+      const gTTS = require('node-gtts')('en');
+      gTTS.save(outputPath, text, async (err) => {
+        if (err) return reject(err);
+        try {
+          const duration = await getAudioDuration(outputPath);
+          resolve({ path: outputPath, duration });
+        } catch (e) {
+          resolve({ path: outputPath, duration: 4.0 });
         }
-        console.log('  ✅ Voiceover audio generated:', path.basename(outputPath));
-        resolve(outputPath);
       });
-    } catch (err) {
-      console.warn('  ⚠️  TTS initialization error, using local fallback:', err.message);
-      generateAmbientFallback(outputPath, 33).then(resolve).catch(reject);
+    } catch (e) {
+      reject(e);
     }
   });
 }
 
 /**
- * Generate soft ambient audio tone if TTS is offline
+ * Measure exact duration of an audio file using ffprobe
  */
-function generateAmbientFallback(outputPath, duration = 30) {
+function getAudioDuration(filePath) {
   return new Promise((resolve, reject) => {
-    ffmpeg()
-      .input(`sine=frequency=392:duration=${duration}`)
-      .inputOptions(['-f lavfi'])
-      .outputOptions([
-        '-c:a libmp3lame',
-        '-b:a 128k',
-        '-ar 44100',
-        `-t ${duration}`
-      ])
-      .output(outputPath)
-      .on('end', () => {
-        console.log('  🎵 Ambient audio fallback created:', path.basename(outputPath));
-        resolve(outputPath);
-      })
-      .on('error', err => reject(err))
-      .run();
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) return reject(err);
+      const dur = metadata && metadata.format && metadata.format.duration;
+      resolve(dur ? parseFloat(dur) : 4.0);
+    });
   });
 }
 
-module.exports = { generateVoiceover, cleanTextForSpeech, generateAmbientFallback };
+module.exports = {
+  generateSceneVoiceover,
+  cleanTextForSpeech,
+  getAudioDuration,
+  DEFAULT_FEMALE_VOICE,
+};

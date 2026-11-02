@@ -110,11 +110,12 @@ async function main() {
     ? path.resolve(flags.output)
     : path.join(outputDir, `${property.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_video.mp4`);
 
-  // Theme
+  // Theme & Voice
   const theme = flags.theme || property.theme || 'luxury';
+  const voice = flags.voice || 'en-IN-NeerjaNeural';
 
   // Generate video
-  const result = await generatePropertyVideo(property, imagePaths, outputPath, { theme });
+  const result = await generatePropertyVideo(property, imagePaths, outputPath, { theme, voice });
 
   if (result.success) {
     console.log('\n  🎬 Your video is ready!');

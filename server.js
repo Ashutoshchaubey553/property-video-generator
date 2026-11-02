@@ -565,6 +565,24 @@ Resort-style infinity pool and luxury wellness clubhouse</textarea>
       <div class="preview-container" id="previewContainer"></div>
     </div>
 
+    <!-- VOICE SELECTOR -->
+    <div class="card">
+      <h2>🎙️ Voiceover Presenter (Authentic Human Female Voices)</h2>
+      <div class="grid">
+        <div class="full">
+          <label>Select Female Presenter</label>
+          <select name="voice" id="voiceSelect" style="padding:12px;font-size:0.95rem;">
+            <option value="en-IN-NeerjaNeural" selected>👩 Neerja — Warm & Professional Indian Female Presenter (Recommended)</option>
+            <option value="en-US-JennyNeural">👩 Jenny — Natural & Crisp Studio Female Presenter</option>
+            <option value="en-US-AriaNeural">👩 Aria — Sophisticated Luxury Brand Female Presenter</option>
+          </select>
+          <p style="color:var(--muted);font-size:0.8rem;margin-top:8px;">
+            🔒 <strong>1:1 Scene Synchronization:</strong> Every photo displays exactly while its corresponding voiceover is speaking. No audio drift or lag!
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- THEME -->
     <div class="card">
       <h2>🎨 Visual Theme</h2>
