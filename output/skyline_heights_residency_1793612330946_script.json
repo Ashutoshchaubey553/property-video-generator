@@ -1,0 +1,134 @@
+{
+  "title": "Skyline Heights Residency",
+  "scenes": [
+    {
+      "id": "opening",
+      "duration": 4,
+      "title": "Skyline Heights Residency",
+      "subtitle": "Bandra West, Mumbai",
+      "caption": "Introducing Skyline Heights Residency",
+      "voiceover": "Welcome to Skyline Heights Residency, located in Bandra West, Mumbai.",
+      "overlay": {
+        "primary": "Skyline Heights Residency",
+        "secondary": "Bandra West, Mumbai",
+        "badge": "3 BHK Luxury Apartment"
+      }
+    },
+    {
+      "id": "price",
+      "duration": 4,
+      "title": "₹3.50 Cr",
+      "subtitle": "3 Bedrooms  •  3 Bathrooms  •  1,850 sq ft",
+      "caption": "3 BHK Luxury Apartment | ₹3.50 Cr",
+      "voiceover": "This 3 BHK Luxury Apartment is priced at ₹3.50 Cr, featuring 3 Bedrooms, 3 Bathrooms, 1,850 sq ft.",
+      "overlay": {
+        "primary": "₹3.50 Cr",
+        "secondary": "3 Bedrooms  •  3 Bathrooms  •  1,850 sq ft",
+        "badge": "3 BHK Luxury Apartment"
+      }
+    },
+    {
+      "id": "feature_1",
+      "duration": 4,
+      "title": "Sea-facing balcony with panoramic ocean views",
+      "subtitle": "",
+      "caption": "Sea-facing balcony with panoramic ocean views",
+      "voiceover": "Enjoy the sea-facing balcony with panoramic ocean views.",
+      "overlay": {
+        "primary": "Sea-facing balcony with panoramic ocean views",
+        "secondary": "",
+        "badge": "Feature 1"
+      }
+    },
+    {
+      "id": "feature_2",
+      "duration": 4,
+      "title": "Modular kitchen with premium appliances",
+      "subtitle": "",
+      "caption": "Modular kitchen with premium appliances",
+      "voiceover": "Experience the modular kitchen with premium appliances.",
+      "overlay": {
+        "primary": "Modular kitchen with premium appliances",
+        "secondary": "",
+        "badge": "Feature 2"
+      }
+    },
+    {
+      "id": "feature_3",
+      "duration": 4,
+      "title": "Master suite with walk-in wardrobe",
+      "subtitle": "",
+      "caption": "Master suite with walk-in wardrobe",
+      "voiceover": "Featuring master suite with walk-in wardrobe.",
+      "overlay": {
+        "primary": "Master suite with walk-in wardrobe",
+        "secondary": "",
+        "badge": "Feature 3"
+      }
+    },
+    {
+      "id": "feature_4",
+      "duration": 4,
+      "title": "Dedicated covered parking (2 slots)",
+      "subtitle": "",
+      "caption": "Dedicated covered parking (2 slots)",
+      "voiceover": "This home includes dedicated covered parking (2 slots).",
+      "overlay": {
+        "primary": "Dedicated covered parking (2 slots)",
+        "secondary": "",
+        "badge": "Feature 4"
+      }
+    },
+    {
+      "id": "feature_5",
+      "duration": 4,
+      "title": "24x7 security with CCTV surveillance",
+      "subtitle": "",
+      "caption": "24x7 security with CCTV surveillance",
+      "voiceover": "Take advantage of the 24x7 security with cctv surveillance.",
+      "overlay": {
+        "primary": "24x7 security with CCTV surveillance",
+        "secondary": "",
+        "badge": "Feature 5"
+      }
+    },
+    {
+      "id": "cta",
+      "duration": 5,
+      "title": "Book a Free Site Visit Today!",
+      "subtitle": "+91 98765 43210",
+      "caption": "Book a Free Site Visit Today! | +91 98765 43210",
+      "voiceover": "Don't miss this opportunity! Book a Free Site Visit Today! Reach us at +91 98765 43210.",
+      "overlay": {
+        "primary": "Book a Free Site Visit Today!",
+        "secondary": "+91 98765 43210",
+        "badge": "Contact Us"
+      }
+    }
+  ],
+  "fullVoiceover": "Welcome to Skyline Heights Residency, located in Bandra West, Mumbai. This 3 BHK Luxury Apartment is priced at ₹3.50 Cr, featuring 3 Bedrooms, 3 Bathrooms, 1,850 sq ft. Enjoy the sea-facing balcony with panoramic ocean views. Experience the modular kitchen with premium appliances. Featuring master suite with walk-in wardrobe. This home includes dedicated covered parking (2 slots). Take advantage of the 24x7 security with cctv surveillance. Don't miss this opportunity! Book a Free Site Visit Today! Reach us at +91 98765 43210.",
+  "totalDuration": 33,
+  "metadata": {
+    "property": {
+      "name": "Skyline Heights Residency",
+      "location": "Bandra West, Mumbai",
+      "price": 35000000,
+      "type": "3 BHK Luxury Apartment",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "area": "1,850 sq ft",
+      "features": [
+        "Sea-facing balcony with panoramic ocean views",
+        "Modular kitchen with premium appliances",
+        "Master suite with walk-in wardrobe",
+        "Dedicated covered parking (2 slots)",
+        "24x7 security with CCTV surveillance"
+      ],
+      "contact": "+91 98765 43210",
+      "cta": "Book a Free Site Visit Today!",
+      "description": "",
+      "theme": "luxury"
+    },
+    "generatedAt": "2026-11-02T09:38:50.951Z"
+  }
+}

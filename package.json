@@ -25,6 +25,7 @@
     "fluent-ffmpeg": "^2.1.3",
     "jimp": "^1.6.0",
     "multer": "^2.5.0",
+    "node-gtts": "^2.0.2",
     "pdf-parse": "^2.0.1",
     "pdf2json": "^3.1.6",
     "sharp": "^0.33.5"

@@ -1,6 +1,6 @@
 /**
  * Video Assembler
- * Uses FFmpeg to stitch frames + images into an MP4 video with transitions
+ * Uses FFmpeg to stitch frames + images into an MP4 video with audio
  */
 
 const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg');
@@ -11,11 +11,11 @@ const fs = require('fs');
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 /**
- * Create a video from a list of image frames
+ * Create a video from a list of image frames with optional audio track
  * Each frame object: { imagePath, duration }
  * @param {Array} frames - Array of { imagePath, duration } objects
  * @param {string} outputPath - Output MP4 file path
- * @param {Object} options - Additional options
+ * @param {Object} options - Additional options (audioPath, fps, quality)
  * @returns {Promise<string>} - Path to the output video
  */
 function createVideoFromFrames(frames, outputPath, options = {}) {
@@ -25,12 +25,12 @@ function createVideoFromFrames(frames, outputPath, options = {}) {
     }
 
     // Build a concat file for FFmpeg
-    const concatFilePath = outputPath.replace('.mp4', '_concat.txt');
+    const concatFilePath = outputPath.replace('.mp4', `_concat_${Date.now()}.txt`);
     const concatContent = frames
       .map(f => `file '${f.imagePath.replace(/\\/g, '/')}'\nduration ${f.duration}`)
       .join('\n');
 
-    // Add last frame again (FFmpeg concat demuxer requires it)
+    // Add last frame again (FFmpeg concat demuxer requires it to compute duration of the last frame)
     const lastFrame = frames[frames.length - 1];
     const concatFinal = concatContent + `\nfile '${lastFrame.imagePath.replace(/\\/g, '/')}'`;
 
@@ -42,32 +42,39 @@ function createVideoFromFrames(frames, outputPath, options = {}) {
       quality = 23,
     } = options;
 
-    // Total duration for audio trim
     const totalDuration = frames.reduce((sum, f) => sum + f.duration, 0);
 
     let cmd = ffmpeg()
       .input(concatFilePath)
-      .inputOptions(['-f concat', '-safe 0'])
-      .outputOptions([
-        `-vf scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${fps}`,
-        '-c:v libx264',
-        '-preset fast',
-        `-crf ${quality}`,
-        '-pix_fmt yuv420p',
-        '-movflags +faststart',
-      ])
-      .output(outputPath);
+      .inputOptions(['-f concat', '-safe 0']);
+
+    const outputOpts = [
+      `-vf scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${fps}`,
+      '-c:v libx264',
+      '-preset fast',
+      `-crf ${quality}`,
+      '-pix_fmt yuv420p',
+      '-movflags +faststart',
+      `-t ${totalDuration}`,
+    ];
 
     if (audioPath && fs.existsSync(audioPath)) {
-      cmd = cmd
-        .input(audioPath)
-        .inputOptions([`-t ${totalDuration}`])
-        .outputOptions(['-c:a aac', '-b:a 128k', '-shortest']);
+      cmd = cmd.input(audioPath);
+      outputOpts.push(
+        '-c:a aac',
+        '-b:a 192k',
+        '-ar 44100',
+        '-map 0:v:0',
+        '-map 1:a:0',
+        '-af apad'
+      );
     }
 
     cmd
+      .outputOptions(outputOpts)
+      .output(outputPath)
       .on('start', cmdLine => {
-        console.log('🎬 FFmpeg started:', cmdLine.substring(0, 120) + '...');
+        console.log('🎬 FFmpeg command started');
       })
       .on('progress', progress => {
         if (progress.percent) {
@@ -76,13 +83,12 @@ function createVideoFromFrames(frames, outputPath, options = {}) {
       })
       .on('end', () => {
         console.log('\n  ✅ Video encoding complete');
-        // Clean up concat file
-        try { fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
+        try { if (fs.existsSync(concatFilePath)) fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
         resolve(outputPath);
       })
       .on('error', (err) => {
         console.error('\n  ❌ FFmpeg error:', err.message);
-        try { fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
+        try { if (fs.existsSync(concatFilePath)) fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
         reject(err);
       })
       .run();
@@ -99,7 +105,6 @@ function createKenBurnsClip(imagePath, outputPath, duration = 4, zoomIn = true) 
     const fps = 25;
     const totalFrames = duration * fps;
 
-    // Ken Burns zoom filter
     const zoompanFilter = `zoompan=z='if(lte(zoom,1.0),${startScale},zoom+${(endScale - startScale) / totalFrames})':d=${totalFrames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1280x720:fps=${fps}`;
 
     ffmpeg()
@@ -120,37 +125,4 @@ function createKenBurnsClip(imagePath, outputPath, duration = 4, zoomIn = true) 
   });
 }
 
-/**
- * Concatenate multiple video clips into one
- */
-function concatenateClips(clipPaths, outputPath) {
-  return new Promise((resolve, reject) => {
-    const concatFilePath = outputPath.replace('.mp4', '_clips_concat.txt');
-    const content = clipPaths.map(p => `file '${p.replace(/\\/g, '/')}'`).join('\n');
-    fs.writeFileSync(concatFilePath, content);
-
-    ffmpeg()
-      .input(concatFilePath)
-      .inputOptions(['-f concat', '-safe 0'])
-      .outputOptions([
-        '-c:v libx264',
-        '-preset fast',
-        '-crf 23',
-        '-pix_fmt yuv420p',
-        '-movflags +faststart',
-      ])
-      .output(outputPath)
-      .on('end', () => {
-        try { fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
-        resolve(outputPath);
-      })
-      .on('error', err => {
-        try { fs.unlinkSync(concatFilePath); } catch (e) { /* ignore */ }
-        reject(err);
-      })
-      .run();
-  });
-}
-
-module.exports = { createVideoFromFrames, createKenBurnsClip, concatenateClips };
-
+module.exports = { createVideoFromFrames, createKenBurnsClip };

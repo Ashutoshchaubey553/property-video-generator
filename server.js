@@ -13,11 +13,22 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Setup multer for image uploads
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `upload_${Date.now()}_${Math.random().toString(36).substring(7)}${ext}`);
+  }
+});
+
 const upload = multer({
-  dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB per file
   fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.bmp'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) cb(null, true);
     else cb(new Error('Only image files are allowed (.jpg, .png, .webp)'));
@@ -36,7 +47,7 @@ app.get('/', (req, res) => {
 });
 
 // ── GENERATE VIDEO API ─────────────────────────────────────────────────────
-app.post('/generate', upload.array('images', 8), async (req, res) => {
+app.post('/generate', upload.array('images', 12), async (req, res) => {
   const uploadedFiles = req.files || [];
 
   try {
@@ -53,7 +64,7 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
     }
 
     // Parse price
-    const parsedPrice = price ? parseFloat(price.replace(/[^0-9.]/g, '')) || price : null;
+    const parsedPrice = price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) || price : null;
 
     // Parse features (textarea, one per line)
     const featureList = (features || '')
@@ -63,16 +74,16 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
 
     const property = {
       name: name.trim(),
-      location: location || '',
+      location: location ? location.trim() : '',
       price: parsedPrice,
-      type: type || 'Property',
+      type: type ? type.trim() : 'Property',
       bedrooms: bedrooms ? parseInt(bedrooms) : null,
       bathrooms: bathrooms ? parseInt(bathrooms) : null,
-      area: area || '',
+      area: area ? area.trim() : '',
       features: featureList,
-      contact: contact || '',
-      cta: cta || 'Contact us today!',
-      description: description || '',
+      contact: contact ? contact.trim() : '',
+      cta: cta ? cta.trim() : 'Contact us today!',
+      description: description ? description.trim() : '',
       theme: theme || 'luxury',
     };
 
@@ -85,7 +96,7 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
     const outputPath = path.join(outputDir, `${safeName}_${Date.now()}.mp4`);
 
-    console.log(`\n🎬 Generating video for: ${name}`);
+    console.log(`\n🎬 Web request: Generating video for "${name}" with ${imagePaths.length} uploaded images`);
 
     const result = await generatePropertyVideo(property, imagePaths, outputPath, {
       theme: theme || 'luxury',
@@ -102,6 +113,7 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
         videoFile,
         duration: result.duration,
         sizeMB: result.sizeMB,
+        hasAudio: result.hasAudio,
         script: result.script.scenes.map(s => ({
           scene: s.id,
           voiceover: s.voiceover,
@@ -112,7 +124,7 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
     }
 
   } catch (err) {
-    console.error('Error:', err.message);
+    console.error('Error during generation:', err.message);
     cleanup(uploadedFiles);
     res.status(500).json({ error: err.message || 'Unexpected error occurred.' });
   }
@@ -120,7 +132,7 @@ app.post('/generate', upload.array('images', 8), async (req, res) => {
 
 // ── HEALTH CHECK ───────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'AI Property Video Generator', version: '1.0.0' });
+  res.json({ status: 'ok', service: 'AI Property Video Generator', version: '1.2.0' });
 });
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -133,7 +145,9 @@ function cleanup(files) {
 // ── START SERVER ───────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n┌─────────────────────────────────────────────┐`);
-  console.log(`│  🏠 AI Property Video Generator             │`);
+  console.log(`│  🏠 AI Property Video Generator v1.2        │`);
+  console.log(`│  🔊 Voiceover Audio: ENABLED               │`);
+  console.log(`│  🖼️  Drag & Drop Upload: ENABLED           │`);
   console.log(`│  🌐 Server running on port ${PORT}             │`);
   console.log(`│  📍 http://localhost:${PORT}                  │`);
   console.log(`└─────────────────────────────────────────────┘\n`);
@@ -161,53 +175,62 @@ function getHTML() {
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: var(--dark);
       color: var(--text);
       min-height: 100vh;
     }
 
-    /* HEADER */
     header {
       background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
       border-bottom: 2px solid var(--gold);
-      padding: 24px 40px;
+      padding: 22px 36px;
       display: flex;
       align-items: center;
       gap: 16px;
     }
-    header h1 { font-size: 1.8rem; color: var(--gold); }
-    header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
-    .logo { font-size: 2.4rem; }
+    header h1 { font-size: 1.7rem; color: var(--gold); }
+    header p { color: var(--muted); font-size: 0.88rem; margin-top: 3px; }
+    .badge-audio {
+      margin-left: auto;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    /* LAYOUT */
     main {
-      max-width: 900px;
-      margin: 40px auto;
+      max-width: 920px;
+      margin: 30px auto;
       padding: 0 20px;
     }
 
-    /* CARD */
     .card {
       background: var(--card);
       border: 1px solid #2a2a4a;
       border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .card h2 {
       color: var(--gold);
       font-size: 1.1rem;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    /* FORM */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .full { grid-column: 1 / -1; }
-    label { display: block; color: var(--muted); font-size: 0.82rem; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    label { display: block; color: var(--muted); font-size: 0.8rem; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     input, textarea, select {
       width: 100%;
       background: #0d0d1f;
@@ -216,37 +239,91 @@ function getHTML() {
       color: var(--text);
       padding: 10px 14px;
       font-size: 0.95rem;
-      transition: border-color 0.2s;
       outline: none;
+      transition: border-color 0.2s;
     }
     input:focus, textarea:focus, select:focus { border-color: var(--gold); }
-    textarea { resize: vertical; min-height: 100px; }
+    textarea { resize: vertical; min-height: 105px; font-family: inherit; line-height: 1.5; }
 
-    /* UPLOAD ZONE */
+    /* UPLOAD ZONE WITH FULL DRAG & DROP */
     .upload-zone {
-      border: 2px dashed #2a2a4a;
-      border-radius: 12px;
-      padding: 32px;
+      border: 2px dashed #3a3a60;
+      border-radius: 14px;
+      padding: 34px 20px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+      background: #121226;
+      transition: all 0.25s ease;
+      position: relative;
     }
-    .upload-zone:hover { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+    .upload-zone:hover {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.06);
+    }
+    .upload-zone.drag-active {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.14);
+      transform: scale(1.01);
+      box-shadow: 0 0 20px rgba(201,168,76,0.25);
+    }
     .upload-zone input[type=file] { display: none; }
-    .upload-zone .icon { font-size: 2.5rem; margin-bottom: 8px; }
-    .upload-zone p { color: var(--muted); font-size: 0.9rem; }
+    .upload-zone .icon { font-size: 3rem; margin-bottom: 10px; }
+    .upload-zone p { color: var(--muted); font-size: 0.92rem; }
     .upload-zone strong { color: var(--gold); }
-    #file-list { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-    .file-tag {
-      background: rgba(201,168,76,0.12);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
+
+    /* PREVIEWS GRID */
+    .preview-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .preview-card {
+      position: relative;
+      background: #0d0d1f;
+      border: 1px solid #2a2a4a;
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-card .remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(239, 68, 68, 0.85);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-card .filename {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.75);
+      color: #ddd;
+      font-size: 10px;
+      padding: 3px 6px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
-    /* THEME SELECTOR */
+    /* THEMES */
     .themes { display: flex; gap: 12px; }
     .theme-btn {
       flex: 1;
@@ -258,7 +335,6 @@ function getHTML() {
       cursor: pointer;
       text-align: center;
       transition: all 0.2s;
-      font-size: 0.9rem;
     }
     .theme-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
     .theme-btn .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-bottom: 6px; }
@@ -284,7 +360,7 @@ function getHTML() {
     .btn-generate:active { transform: scale(0.99); }
     .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* PROGRESS */
+    /* STATUS */
     #status-box { display: none; }
     .progress-bar {
       height: 6px;
@@ -295,14 +371,10 @@ function getHTML() {
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--gold), #e8c87a);
+      background: linear-gradient(90deg, var(--gold), #22c55e);
       border-radius: 3px;
       width: 0%;
-      transition: width 0.4s ease;
-      animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer {
-      0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; }
+      transition: width 0.3s ease;
     }
     .step {
       display: flex;
@@ -311,46 +383,44 @@ function getHTML() {
       padding: 8px 0;
       color: var(--muted);
       font-size: 0.9rem;
-      transition: color 0.3s;
     }
-    .step.active { color: var(--gold); }
+    .step.active { color: var(--gold); font-weight: 600; }
     .step.done { color: var(--green); }
-    .step-icon { font-size: 1.1rem; width: 24px; text-align: center; }
 
     /* RESULT */
     #result-box { display: none; }
     .video-card {
       background: #0d0d1f;
       border: 1px solid var(--green);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 24px;
       text-align: center;
     }
-    .video-card h3 { color: var(--green); margin-bottom: 16px; font-size: 1.2rem; }
-    video { width: 100%; border-radius: 8px; max-height: 400px; background: #000; }
+    .video-card h3 { color: var(--green); margin-bottom: 14px; font-size: 1.25rem; }
+    video { width: 100%; border-radius: 10px; max-height: 440px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .btn-download {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 16px;
-      padding: 12px 28px;
+      margin-top: 18px;
+      padding: 12px 30px;
       background: var(--green);
       color: #fff;
       font-weight: 700;
       border-radius: 8px;
       text-decoration: none;
-      font-size: 1rem;
+      font-size: 1.05rem;
       transition: opacity 0.2s;
     }
     .btn-download:hover { opacity: 0.88; }
 
-    /* SCRIPT */
     .script-box {
       background: #0d0d1f;
       border: 1px solid #2a2a4a;
       border-radius: 10px;
       padding: 20px;
       margin-top: 20px;
+      text-align: left;
     }
     .script-box h4 { color: var(--gold); margin-bottom: 12px; }
     .script-scene {
@@ -360,10 +430,9 @@ function getHTML() {
       background: rgba(201,168,76,0.04);
       border-radius: 0 6px 6px 0;
     }
-    .script-scene .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+    .script-scene .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; font-weight: 700; }
     .script-scene .text { color: var(--text); font-size: 0.9rem; margin-top: 2px; font-style: italic; }
 
-    /* ERROR */
     #error-box {
       display: none;
       background: rgba(239,68,68,0.1);
@@ -374,12 +443,11 @@ function getHTML() {
       margin-top: 16px;
     }
 
-    /* FOOTER */
     footer {
       text-align: center;
       color: var(--muted);
       font-size: 0.82rem;
-      padding: 40px 20px;
+      padding: 30px 20px;
     }
     footer a { color: var(--gold); text-decoration: none; }
   </style>
@@ -387,10 +455,13 @@ function getHTML() {
 <body>
 
 <header>
-  <div class="logo">🏠</div>
+  <div style="font-size:2.4rem">🏠</div>
   <div>
     <h1>AI Property Video Generator</h1>
-    <p>Turn property details into a professional promotional MP4 video — instantly</p>
+    <p>Auto-generate HD promotional videos with voiceover narration & styled graphics</p>
+  </div>
+  <div class="badge-audio">
+    <span>🔊</span> AI Voiceover Audio Enabled
   </div>
 </header>
 
@@ -411,7 +482,7 @@ function getHTML() {
         </div>
         <div>
           <label>Price (₹)</label>
-          <input type="text" name="price" placeholder="e.g. 3.5 Cr or 35000000" value="35000000"/>
+          <input type="text" name="price" placeholder="e.g. 35000000" value="35000000"/>
         </div>
         <div>
           <label>Property Type</label>
@@ -435,31 +506,35 @@ function getHTML() {
         </div>
         <div class="full">
           <label>Key Features (one per line)</label>
-          <textarea name="features" placeholder="Sea-facing balcony with panoramic views&#10;Modular kitchen with premium appliances&#10;Master suite with walk-in wardrobe">Sea-facing balcony with panoramic ocean views
+          <textarea name="features" placeholder="Sea-facing balcony with panoramic ocean views&#10;Modular kitchen with premium appliances&#10;Master suite with walk-in wardrobe">Sea-facing balcony with panoramic ocean views
 Modular kitchen with premium appliances
 Master suite with walk-in wardrobe
 Dedicated covered parking (2 slots)
 24x7 security with CCTV surveillance</textarea>
         </div>
         <div class="full">
-          <label>Call to Action</label>
+          <label>Call to Action (CTA)</label>
           <input type="text" name="cta" placeholder="Book a Free Site Visit Today!" value="Book a Free Site Visit Today!"/>
         </div>
       </div>
     </div>
 
-    <!-- IMAGES -->
+    <!-- DRAG & DROP PROPERTY IMAGES -->
     <div class="card">
-      <h2>📸 Property Images (optional, up to 8)</h2>
-      <div class="upload-zone" onclick="document.getElementById('imageUpload').click()">
-        <input type="file" id="imageUpload" name="images" multiple accept=".jpg,.jpeg,.png,.webp" onchange="showFiles(this)"/>
-        <div class="icon">📷</div>
-        <p><strong>Click to upload</strong> or drag & drop</p>
-        <p>JPG, PNG, WEBP · Max 10 MB each · Up to 8 images</p>
-        <div id="file-list"></div>
+      <h2>📸 Property Images (Drag & Drop or Click to Upload)</h2>
+      
+      <div class="upload-zone" id="dropZone">
+        <input type="file" id="imageUpload" multiple accept=".jpg,.jpeg,.png,.webp,.bmp"/>
+        <div class="icon">📥</div>
+        <p><strong>Drag and drop your property images here</strong></p>
+        <p style="margin-top:4px">or click anywhere in this box to browse files</p>
+        <p style="font-size:0.78rem;color:#787898;margin-top:8px">Supports JPG, PNG, WEBP · Up to 12 images</p>
       </div>
-      <p style="color:var(--muted);font-size:0.82rem;margin-top:10px">
-        💡 No images? No problem — we'll generate styled backgrounds automatically.
+
+      <div class="preview-container" id="previewContainer"></div>
+      
+      <p style="color:var(--muted);font-size:0.82rem;margin-top:14px">
+        💡 <em>No photos handy? Don't worry — styled architectural visuals are generated automatically if none are uploaded.</em>
       </p>
     </div>
 
@@ -473,11 +548,11 @@ Dedicated covered parking (2 slots)
         </button>
         <button type="button" class="theme-btn" onclick="setTheme('modern', this)">
           <div><div class="dot" style="background:#00bcd4;margin:0 auto 6px"></div></div>
-          <strong>Modern</strong><br/><small style="color:var(--muted)">Dark + Cyan</small>
+          <strong>Modern</strong><br/><small style="color:var(--muted)">Deep Blue + Cyan</small>
         </button>
         <button type="button" class="theme-btn" onclick="setTheme('classic', this)">
           <div><div class="dot" style="background:#d4a853;margin:0 auto 6px"></div></div>
-          <strong>Classic</strong><br/><small style="color:var(--muted)">Brown + Amber</small>
+          <strong>Classic</strong><br/><small style="color:var(--muted)">Warm Timber + Amber</small>
         </button>
       </div>
       <input type="hidden" name="theme" id="themeInput" value="luxury"/>
@@ -485,17 +560,17 @@ Dedicated covered parking (2 slots)
 
     <!-- GENERATE BUTTON -->
     <button type="submit" class="btn-generate" id="generateBtn">
-      <span>🎬</span> Generate Property Video
+      <span>🎬</span> Generate Property Video with Voiceover
     </button>
 
     <!-- STATUS -->
-    <div class="card" id="status-box" style="margin-top:24px">
-      <h2>⚙️ Generating your video...</h2>
+    <div class="card" id="status-box" style="margin-top:20px">
+      <h2>⚙️ Creating your promotional video...</h2>
       <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="step" id="step1"><span class="step-icon">📝</span> Generating AI voiceover script...</div>
-      <div class="step" id="step2"><span class="step-icon">🎨</span> Rendering scene frames...</div>
-      <div class="step" id="step3"><span class="step-icon">🎬</span> Encoding MP4 with FFmpeg...</div>
-      <div class="step" id="step4"><span class="step-icon">✅</span> Finalizing video...</div>
+      <div class="step" id="step1"><span class="step-icon">📝</span> 1. Writing AI voiceover script...</div>
+      <div class="step" id="step2"><span class="step-icon">🎨</span> 2. Rendering scene frames & text overlays...</div>
+      <div class="step" id="step3"><span class="step-icon">🔊</span> 3. Generating AI voiceover narration track...</div>
+      <div class="step" id="step4"><span class="step-icon">🎬</span> 4. Muxing video and audio with FFmpeg...</div>
     </div>
 
     <!-- ERROR -->
@@ -505,18 +580,23 @@ Dedicated covered parking (2 slots)
   <!-- RESULT -->
   <div class="card" id="result-box">
     <div class="video-card">
-      <h3>🎉 Video Ready!</h3>
+      <h3>🎉 Your Video is Ready!</h3>
       <video id="videoPlayer" controls playsinline></video>
+      <div style="margin-top:12px;color:var(--muted);font-size:0.9rem">
+        🔊 Make sure your volume is on to hear the AI voiceover!
+      </div>
       <br/>
-      <a id="downloadBtn" href="#" download class="btn-download">⬇️ Download MP4</a>
+      <a id="downloadBtn" href="#" download class="btn-download">⬇️ Download Video (MP4)</a>
     </div>
+
     <div class="script-box">
-      <h4>📋 Generated Voiceover Script</h4>
+      <h4>📋 Voiceover Narration Script</h4>
       <div id="scriptContent"></div>
     </div>
-    <div style="margin-top:16px;text-align:center">
+
+    <div style="margin-top:20px;text-align:center">
       <button onclick="resetForm()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:0.95rem">
-        🔄 Generate Another Video
+        🔄 Create Another Property Video
       </button>
     </div>
   </div>
@@ -525,62 +605,130 @@ Dedicated covered parking (2 slots)
 
 <footer>
   <p>🏠 AI Property Video Generator · Built with Node.js, Canvas & FFmpeg</p>
-  <p style="margin-top:6px"><a href="https://github.com/Ashutoshchaubey553/property-video-generator" target="_blank">📂 View on GitHub</a></p>
+  <p style="margin-top:6px"><a href="https://github.com/Ashutoshchaubey553/property-video-generator" target="_blank">📂 View Repository on GitHub</a></p>
 </footer>
 
 <script>
-  let selectedTheme = 'luxury';
+  let selectedFiles = []; // Master list of files (from clicks or drops)
+
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('imageUpload');
+  const previewContainer = document.getElementById('previewContainer');
+
+  // Trigger file picker on click
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  // Drag and drop event listeners
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+    addFiles(droppedFiles);
+  }, false);
+
+  fileInput.addEventListener('change', (e) => {
+    const pickedFiles = Array.from(e.target.files);
+    addFiles(pickedFiles);
+  });
+
+  function addFiles(newFiles) {
+    newFiles.forEach(file => {
+      // Avoid duplicate names
+      if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        selectedFiles.push(file);
+      }
+    });
+    renderPreviews();
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    previewContainer.innerHTML = '';
+    selectedFiles.forEach((file, index) => {
+      const card = document.createElement('div');
+      card.className = 'preview-card';
+
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.innerHTML = '✕';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeFile(index);
+      };
+
+      const filename = document.createElement('div');
+      filename.className = 'filename';
+      filename.textContent = file.name;
+
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      card.appendChild(filename);
+      previewContainer.appendChild(card);
+    });
+  }
 
   function setTheme(theme, btn) {
-    selectedTheme = theme;
     document.getElementById('themeInput').value = theme;
     document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
 
-  function showFiles(input) {
-    const list = document.getElementById('file-list');
-    list.innerHTML = '';
-    Array.from(input.files).forEach(f => {
-      const tag = document.createElement('div');
-      tag.className = 'file-tag';
-      tag.textContent = '📸 ' + f.name;
-      list.appendChild(tag);
-    });
-  }
-
-  // Progress animation
+  // Animated progress bar
   let progressTimer = null;
   function startProgress() {
     const fill = document.getElementById('progressFill');
-    const steps = ['step1','step2','step3','step4'];
+    const steps = ['step1', 'step2', 'step3', 'step4'];
     let pct = 0, stepIdx = 0;
     fill.style.width = '0%';
     steps.forEach(s => { document.getElementById(s).className = 'step'; });
+    document.getElementById('step1').className = 'step active';
 
     progressTimer = setInterval(() => {
-      if (pct < 92) {
-        pct += Math.random() * 2.5;
-        fill.style.width = Math.min(pct, 92) + '%';
-        const si = Math.floor((pct / 92) * steps.length);
+      if (pct < 90) {
+        pct += 1.8;
+        fill.style.width = Math.min(pct, 90) + '%';
+        const si = Math.floor((pct / 90) * steps.length);
         if (si < steps.length && si !== stepIdx) {
           if (stepIdx > 0) document.getElementById(steps[stepIdx-1]).className = 'step done';
           document.getElementById(steps[si]).className = 'step active';
           stepIdx = si;
         }
       }
-    }, 400);
+    }, 450);
   }
 
   function stopProgress() {
     clearInterval(progressTimer);
     document.getElementById('progressFill').style.width = '100%';
-    ['step1','step2','step3','step4'].forEach(s => {
+    ['step1', 'step2', 'step3', 'step4'].forEach(s => {
       document.getElementById(s).className = 'step done';
     });
   }
 
-  // Form submit
+  // Form submit handler
   document.getElementById('videoForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('generateBtn');
@@ -589,7 +737,7 @@ Dedicated covered parking (2 slots)
     const errorBox = document.getElementById('error-box');
 
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> Generating...';
+    btn.innerHTML = '<span>⏳</span> Generating Video & Voiceover...';
     statusBox.style.display = 'block';
     resultBox.style.display = 'none';
     errorBox.style.display = 'none';
@@ -597,23 +745,31 @@ Dedicated covered parking (2 slots)
 
     const formData = new FormData(e.target);
 
+    // Ensure all dragged & dropped files are appended to the FormData
+    formData.delete('images');
+    selectedFiles.forEach(file => {
+      formData.append('images', file, file.name);
+    });
+
     try {
       const resp = await fetch('/generate', { method: 'POST', body: formData });
       const data = await resp.json();
       stopProgress();
 
       if (data.success) {
-        // Show video
         const player = document.getElementById('videoPlayer');
         player.src = data.videoUrl;
+        player.muted = false; // ensure audio is unmuted!
+        player.load();
+
         document.getElementById('downloadBtn').href = data.videoUrl;
         document.getElementById('downloadBtn').download = data.videoFile;
 
-        // Show script
+        // Display voiceover script
         const scriptDiv = document.getElementById('scriptContent');
         scriptDiv.innerHTML = data.script.map(s => \`
           <div class="script-scene">
-            <div class="label">\${s.scene.replace(/_/g,' ')}</div>
+            <div class="label">\${s.scene.replace(/_/g, ' ')}</div>
             <div class="text">"\${s.voiceover}"</div>
           </div>
         \`).join('');
@@ -631,13 +787,15 @@ Dedicated covered parking (2 slots)
       errorBox.textContent = '❌ Error: ' + err.message;
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>🎬</span> Generate Property Video';
+      btn.innerHTML = '<span>🎬</span> Generate Property Video with Voiceover';
     }
   });
 
   function resetForm() {
     document.getElementById('result-box').style.display = 'none';
     document.getElementById('videoForm').reset();
+    selectedFiles = [];
+    renderPreviews();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
@@ -646,4 +804,3 @@ Dedicated covered parking (2 slots)
 }
 
 module.exports = app;
-
