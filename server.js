@@ -67,7 +67,7 @@ app.post('/generate', upload.array('images', 12), async (req, res) => {
 
   try {
     const {
-      name, location, price, type,
+      name, location, price, type, voice, musicVolume,
       bedrooms, bathrooms, area,
       features, contact, cta, description, theme,
     } = req.body;
@@ -110,6 +110,8 @@ app.post('/generate', upload.array('images', 12), async (req, res) => {
 
     const result = await generatePropertyVideo(property, imagePaths, outputPath, {
       theme: theme || 'luxury',
+      voice: voice || 'en-IN-NeerjaNeural',
+      musicVolume: musicVolume !== undefined ? parseFloat(musicVolume) : 0.12,
     });
 
     cleanup(uploadedFiles);
@@ -565,19 +567,30 @@ Resort-style infinity pool and luxury wellness clubhouse</textarea>
       <div class="preview-container" id="previewContainer"></div>
     </div>
 
-    <!-- VOICE SELECTOR -->
+    <!-- VOICE & BACKGROUND MUSIC -->
     <div class="card">
-      <h2>🎙️ Voiceover Presenter (Authentic Human Female Voices)</h2>
+      <h2>🎙️ Voiceover Presenter & Ambient Music</h2>
       <div class="grid">
-        <div class="full">
+        <div>
           <label>Select Female Presenter</label>
           <select name="voice" id="voiceSelect" style="padding:12px;font-size:0.95rem;">
-            <option value="en-IN-NeerjaNeural" selected>👩 Neerja — Warm & Professional Indian Female Presenter (Recommended)</option>
+            <option value="en-IN-NeerjaNeural" selected>👩 Neerja — Warm & Professional Indian Female Presenter</option>
             <option value="en-US-JennyNeural">👩 Jenny — Natural & Crisp Studio Female Presenter</option>
             <option value="en-US-AriaNeural">👩 Aria — Sophisticated Luxury Brand Female Presenter</option>
           </select>
-          <p style="color:var(--muted);font-size:0.8rem;margin-top:8px;">
-            🔒 <strong>1:1 Scene Synchronization:</strong> Every photo displays exactly while its corresponding voiceover is speaking. No audio drift or lag!
+        </div>
+        <div>
+          <label>Background Ambient Music</label>
+          <select name="musicVolume" id="musicSelect" style="padding:12px;font-size:0.95rem;">
+            <option value="0.12" selected>🎵 Soft Ambient Piano (12% Volume - Recommended)</option>
+            <option value="0.08">🎵 Subtle Whispering Piano (8% Volume)</option>
+            <option value="0.18">🎵 Gentle Melodic Piano (18% Volume)</option>
+            <option value="0">🔇 Mute Background Music (Voiceover Only)</option>
+          </select>
+        </div>
+        <div class="full">
+          <p style="color:var(--muted);font-size:0.8rem;margin-top:4px;">
+            🔒 <strong>1:1 Sync + Ambient Music:</strong> Soft classical piano plays continuously till the end with smooth fade-in and fade-out, while the woman's voice speaks in exact sync with each 4K photo.
           </p>
         </div>
       </div>

@@ -1,28 +1,32 @@
 /**
  * AI Property Video Generator — Synchronized Video Engine
  * Locks each 4K scene image and human female voiceover together 1:1,
- * eliminating all audio drift and timing mismatches.
+ * and layers soft continuous background ambient music till the end.
  */
 
 const path = require('path');
 const fs = require('fs');
 const { generateScript } = require('./scriptGenerator');
 const { generateFrame, generateTitleFrame, generateCTAFrame } = require('./frameGenerator');
-const { createSceneClip, concatenateClips } = require('./videoAssembler');
+const { createSceneClip, concatenateClips, mixBackgroundMusic } = require('./videoAssembler');
 const { getAllSampleImages, SAMPLE_PROPERTIES } = require('./sampleData');
 const { generateSceneVoiceover, DEFAULT_FEMALE_VOICE } = require('./audioGenerator');
 
+const DEFAULT_BG_MUSIC = path.resolve(__dirname, '../sample-data/ambient_piano_music.mp3');
+
 /**
- * Generate a fully synchronized property video
+ * Generate a fully synchronized property video with voiceover and continuous background music
  * @param {Object} property - Property details
  * @param {Array<string>} imagePaths - 4K photo file paths
  * @param {string} outputPath - Destination MP4 path
- * @param {Object} options - Customization options (theme, voice)
+ * @param {Object} options - Customization options (theme, voice, bgMusic, musicVolume)
  */
 async function generatePropertyVideo(property, imagePaths = [], outputPath, options = {}) {
   const {
     theme = 'luxury',
     voice = DEFAULT_FEMALE_VOICE,
+    bgMusic = DEFAULT_BG_MUSIC,
+    musicVolume = 0.12,
   } = options;
 
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -31,7 +35,8 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
   console.log(`  Property:  ${property.name}`);
   console.log(`  Location:  ${property.location}`);
   console.log(`  Theme:     ${theme}`);
-  console.log(`  Voice:     ${voice} (Natural Human Female Voice)`);
+  console.log(`  Voice:     ${voice} (Natural Human Female Presenter)`);
+  console.log(`  Music:     Low Ambient Background Music Enabled (12% vol)`);
   console.log(`  Photos:    ${imagePaths.length} provided`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
@@ -40,7 +45,7 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
   const script = generateScript(property);
   console.log(`  ✅ Script prepared with ${script.scenes.length} dedicated scenes.\n`);
 
-  // 2. Temp directory for this video's assets
+  // 2. Temp directory for this video's intermediate renders
   const tempDir = path.join(path.dirname(outputPath), `temp_render_${Date.now()}`);
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
@@ -97,11 +102,16 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
       console.log(`🎬 Clip OK (${sceneDuration}s)`);
     }
 
-    // 3. Assemble all clips into final video
-    console.log('\n🔗 Step 3: Stitching synchronized clips into final MP4...');
-    await concatenateClips(clipPaths, outputPath);
+    // 3. Assemble all scene clips into a single video
+    console.log('\n🔗 Step 3: Stitching scene clips into video...');
+    const intermediateVideo = path.join(tempDir, 'concatenated_raw.mp4');
+    await concatenateClips(clipPaths, intermediateVideo);
 
-    // 4. Save script JSON
+    // 4. Layer soft continuous background music from start till end
+    console.log('\n🎵 Step 4: Layering continuous low background music...');
+    await mixBackgroundMusic(intermediateVideo, bgMusic, outputPath, musicVolume);
+
+    // 5. Save script JSON
     const scriptPath = outputPath.replace('.mp4', '_script.json');
     fs.writeFileSync(scriptPath, JSON.stringify(script, null, 2));
 
@@ -114,6 +124,7 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
     console.log(`  📏 Size:      ${sizeMB} MB (1080p Full HD)`);
     console.log(`  ⏱️  Duration:  ${totalVideoDuration.toFixed(1)} seconds`);
     console.log(`  🎙️  Voice:     Natural Human Female Presenter (${voice})`);
+    console.log(`  🎵 Music:     Soft Classical Ambient Piano (Continuous till end)`);
     console.log(`  🔒 Sync:      100% Locked 1:1 (Image & Speech match exactly)`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
@@ -125,6 +136,7 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
       sizeMB,
       duration: Math.round(totalVideoDuration),
       hasAudio: true,
+      hasBgm: true,
       voice,
     };
 
@@ -139,7 +151,7 @@ async function generatePropertyVideo(property, imagePaths = [], outputPath, opti
 }
 
 /**
- * Quick demo mode using 4K sample images and human female voice
+ * Quick demo mode using 4K sample images, human female voice, and low background music
  */
 async function runDemo(outputDir = './output') {
   const property = SAMPLE_PROPERTIES[0];
@@ -151,6 +163,8 @@ async function runDemo(outputDir = './output') {
   return generatePropertyVideo(property, images, outputPath, {
     theme: 'luxury',
     voice: 'en-IN-NeerjaNeural',
+    bgMusic: DEFAULT_BG_MUSIC,
+    musicVolume: 0.12,
   });
 }
 
