@@ -1,21 +1,20 @@
 {
-  "name": "Skyline Heights Residency",
-  "location": "Bandra West, Mumbai",
-  "price": 35000000,
-  "type": "3 BHK Luxury Apartment",
-  "bedrooms": 3,
-  "bathrooms": 3,
-  "area": "1,850 sq ft",
+  "name": "The Grand Crest by Realty Assistant",
+  "location": "Sector 150, Noida Express Highway",
+  "price": 28500000,
+  "type": "4 BHK Ultra-Luxury Residence",
+  "bedrooms": 4,
+  "bathrooms": 4,
+  "area": "2,450 sq ft",
   "features": [
-    "Sea-facing balcony with panoramic ocean views",
-    "Modular kitchen with premium appliances",
-    "Master suite with walk-in wardrobe",
-    "Dedicated covered parking (2 slots)",
-    "24x7 security with CCTV surveillance"
+    "Expansive living room with double-height panoramic windows",
+    "Italian modular kitchen equipped with premium appliances",
+    "Palatial master bedroom suite with walk-in dressing lounge",
+    "Sun-drenched balcony overlooking scenic landscaped greens",
+    "Resort-style infinity pool and luxury wellness clubhouse"
   ],
-  "contact": "+91 98765 43210",
-  "cta": "Book a Free Site Visit Today!",
-  "description": "An exquisite sea-facing apartment offering luxury living in the heart of Bandra. This meticulously designed residence blends modern aesthetics with functional living spaces.",
+  "contact": "+91 99990 12345 | info@realtyassistant.in",
+  "cta": "Book an Exclusive Site Visit with Realty Assistant!",
+  "description": "Exclusively curated by Realty Assistant. Experience bespoke luxury living with world-class architecture, five-star concierge services, and unmatched connectivity.",
   "theme": "luxury"
 }
-

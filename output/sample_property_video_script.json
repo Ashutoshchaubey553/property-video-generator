@@ -1,41 +1,41 @@
 {
-  "title": "Skyline Heights Residency",
+  "title": "The Grand Crest by Realty Assistant",
   "scenes": [
     {
       "id": "opening",
       "duration": 4,
-      "title": "Skyline Heights Residency",
-      "subtitle": "Bandra West, Mumbai",
-      "caption": "Introducing Skyline Heights Residency",
-      "voiceover": "Welcome to Skyline Heights Residency, located in Bandra West, Mumbai.",
+      "title": "The Grand Crest by Realty Assistant",
+      "subtitle": "Sector 150, Noida Express Highway",
+      "caption": "Introducing The Grand Crest by Realty Assistant",
+      "voiceover": "Welcome to The Grand Crest by Realty Assistant, located in Sector 150, Noida Express Highway.",
       "overlay": {
-        "primary": "Skyline Heights Residency",
-        "secondary": "Bandra West, Mumbai",
-        "badge": "3 BHK Luxury Apartment"
+        "primary": "The Grand Crest by Realty Assistant",
+        "secondary": "Sector 150, Noida Express Highway",
+        "badge": "4 BHK Ultra-Luxury Residence"
       }
     },
     {
       "id": "price",
       "duration": 4,
-      "title": "₹3.50 Cr",
-      "subtitle": "3 Bedrooms  •  3 Bathrooms  •  1,850 sq ft",
-      "caption": "3 BHK Luxury Apartment | ₹3.50 Cr",
-      "voiceover": "This 3 BHK Luxury Apartment is priced at ₹3.50 Cr, featuring 3 Bedrooms, 3 Bathrooms, 1,850 sq ft.",
+      "title": "₹2.85 Cr",
+      "subtitle": "4 Bedrooms  •  4 Bathrooms  •  2,450 sq ft",
+      "caption": "4 BHK Ultra-Luxury Residence | ₹2.85 Cr",
+      "voiceover": "This 4 BHK Ultra-Luxury Residence is priced at ₹2.85 Cr, featuring 4 Bedrooms, 4 Bathrooms, 2,450 sq ft.",
       "overlay": {
-        "primary": "₹3.50 Cr",
-        "secondary": "3 Bedrooms  •  3 Bathrooms  •  1,850 sq ft",
-        "badge": "3 BHK Luxury Apartment"
+        "primary": "₹2.85 Cr",
+        "secondary": "4 Bedrooms  •  4 Bathrooms  •  2,450 sq ft",
+        "badge": "4 BHK Ultra-Luxury Residence"
       }
     },
     {
       "id": "feature_1",
       "duration": 4,
-      "title": "Sea-facing balcony with panoramic ocean views",
+      "title": "Expansive living room with double-height panoramic windows",
       "subtitle": "",
-      "caption": "Sea-facing balcony with panoramic ocean views",
-      "voiceover": "Enjoy the sea-facing balcony with panoramic ocean views.",
+      "caption": "Expansive living room with double-height panoramic windows",
+      "voiceover": "Enjoy the expansive living room with double-height panoramic windows.",
       "overlay": {
-        "primary": "Sea-facing balcony with panoramic ocean views",
+        "primary": "Expansive living room with double-height panoramic windows",
         "secondary": "",
         "badge": "Feature 1"
       }
@@ -43,12 +43,12 @@
     {
       "id": "feature_2",
       "duration": 4,
-      "title": "Modular kitchen with premium appliances",
+      "title": "Italian modular kitchen equipped with premium appliances",
       "subtitle": "",
-      "caption": "Modular kitchen with premium appliances",
-      "voiceover": "Experience the modular kitchen with premium appliances.",
+      "caption": "Italian modular kitchen equipped with premium appliances",
+      "voiceover": "Experience the italian modular kitchen equipped with premium appliances.",
       "overlay": {
-        "primary": "Modular kitchen with premium appliances",
+        "primary": "Italian modular kitchen equipped with premium appliances",
         "secondary": "",
         "badge": "Feature 2"
       }
@@ -56,12 +56,12 @@
     {
       "id": "feature_3",
       "duration": 4,
-      "title": "Master suite with walk-in wardrobe",
+      "title": "Palatial master bedroom suite with walk-in dressing lounge",
       "subtitle": "",
-      "caption": "Master suite with walk-in wardrobe",
-      "voiceover": "Featuring master suite with walk-in wardrobe.",
+      "caption": "Palatial master bedroom suite with walk-in dressing lounge",
+      "voiceover": "Featuring palatial master bedroom suite with walk-in dressing lounge.",
       "overlay": {
-        "primary": "Master suite with walk-in wardrobe",
+        "primary": "Palatial master bedroom suite with walk-in dressing lounge",
         "secondary": "",
         "badge": "Feature 3"
       }
@@ -69,12 +69,12 @@
     {
       "id": "feature_4",
       "duration": 4,
-      "title": "Dedicated covered parking (2 slots)",
+      "title": "Sun-drenched balcony overlooking scenic landscaped greens",
       "subtitle": "",
-      "caption": "Dedicated covered parking (2 slots)",
-      "voiceover": "This home includes dedicated covered parking (2 slots).",
+      "caption": "Sun-drenched balcony overlooking scenic landscaped greens",
+      "voiceover": "This home includes sun-drenched balcony overlooking scenic landscaped greens.",
       "overlay": {
-        "primary": "Dedicated covered parking (2 slots)",
+        "primary": "Sun-drenched balcony overlooking scenic landscaped greens",
         "secondary": "",
         "badge": "Feature 4"
       }
@@ -82,12 +82,12 @@
     {
       "id": "feature_5",
       "duration": 4,
-      "title": "24x7 security with CCTV surveillance",
+      "title": "Resort-style infinity pool and luxury wellness clubhouse",
       "subtitle": "",
-      "caption": "24x7 security with CCTV surveillance",
-      "voiceover": "Take advantage of the 24x7 security with cctv surveillance.",
+      "caption": "Resort-style infinity pool and luxury wellness clubhouse",
+      "voiceover": "Take advantage of the resort-style infinity pool and luxury wellness clubhouse.",
       "overlay": {
-        "primary": "24x7 security with CCTV surveillance",
+        "primary": "Resort-style infinity pool and luxury wellness clubhouse",
         "secondary": "",
         "badge": "Feature 5"
       }
@@ -95,40 +95,40 @@
     {
       "id": "cta",
       "duration": 5,
-      "title": "Book a Free Site Visit Today!",
-      "subtitle": "+91 98765 43210",
-      "caption": "Book a Free Site Visit Today! | +91 98765 43210",
-      "voiceover": "Don't miss this opportunity! Book a Free Site Visit Today! Reach us at +91 98765 43210.",
+      "title": "Book an Exclusive Site Visit with Realty Assistant!",
+      "subtitle": "+91 99990 12345 | info@realtyassistant.in",
+      "caption": "Book an Exclusive Site Visit with Realty Assistant! | +91 99990 12345 | info@realtyassistant.in",
+      "voiceover": "Don't miss this opportunity! Book an Exclusive Site Visit with Realty Assistant! Reach us at +91 99990 12345 | info@realtyassistant.in.",
       "overlay": {
-        "primary": "Book a Free Site Visit Today!",
-        "secondary": "+91 98765 43210",
+        "primary": "Book an Exclusive Site Visit with Realty Assistant!",
+        "secondary": "+91 99990 12345 | info@realtyassistant.in",
         "badge": "Contact Us"
       }
     }
   ],
-  "fullVoiceover": "Welcome to Skyline Heights Residency, located in Bandra West, Mumbai. This 3 BHK Luxury Apartment is priced at ₹3.50 Cr, featuring 3 Bedrooms, 3 Bathrooms, 1,850 sq ft. Enjoy the sea-facing balcony with panoramic ocean views. Experience the modular kitchen with premium appliances. Featuring master suite with walk-in wardrobe. This home includes dedicated covered parking (2 slots). Take advantage of the 24x7 security with cctv surveillance. Don't miss this opportunity! Book a Free Site Visit Today! Reach us at +91 98765 43210.",
+  "fullVoiceover": "Welcome to The Grand Crest by Realty Assistant, located in Sector 150, Noida Express Highway. This 4 BHK Ultra-Luxury Residence is priced at ₹2.85 Cr, featuring 4 Bedrooms, 4 Bathrooms, 2,450 sq ft. Enjoy the expansive living room with double-height panoramic windows. Experience the italian modular kitchen equipped with premium appliances. Featuring palatial master bedroom suite with walk-in dressing lounge. This home includes sun-drenched balcony overlooking scenic landscaped greens. Take advantage of the resort-style infinity pool and luxury wellness clubhouse. Don't miss this opportunity! Book an Exclusive Site Visit with Realty Assistant! Reach us at +91 99990 12345 | info@realtyassistant.in.",
   "totalDuration": 33,
   "metadata": {
     "property": {
-      "name": "Skyline Heights Residency",
-      "location": "Bandra West, Mumbai",
-      "price": 35000000,
-      "type": "3 BHK Luxury Apartment",
-      "bedrooms": 3,
-      "bathrooms": 3,
-      "area": "1,850 sq ft",
+      "name": "The Grand Crest by Realty Assistant",
+      "location": "Sector 150, Noida Express Highway",
+      "price": 28500000,
+      "type": "4 BHK Ultra-Luxury Residence",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "area": "2,450 sq ft",
       "features": [
-        "Sea-facing balcony with panoramic ocean views",
-        "Modular kitchen with premium appliances",
-        "Master suite with walk-in wardrobe",
-        "Dedicated covered parking (2 slots)",
-        "24x7 security with CCTV surveillance"
+        "Expansive living room with double-height panoramic windows",
+        "Italian modular kitchen equipped with premium appliances",
+        "Palatial master bedroom suite with walk-in dressing lounge",
+        "Sun-drenched balcony overlooking scenic landscaped greens",
+        "Resort-style infinity pool and luxury wellness clubhouse"
       ],
-      "contact": "+91 98765 43210",
-      "cta": "Book a Free Site Visit Today!",
-      "description": "An exquisite sea-facing apartment offering luxury living in the heart of Bandra. This meticulously designed residence blends modern aesthetics with functional living spaces.",
+      "contact": "+91 99990 12345 | info@realtyassistant.in",
+      "cta": "Book an Exclusive Site Visit with Realty Assistant!",
+      "description": "Exclusively curated by Realty Assistant. Experience bespoke luxury living with world-class architecture, five-star concierge services, and unmatched connectivity.",
       "theme": "luxury"
     },
-    "generatedAt": "2026-11-02T09:51:05.674Z"
+    "generatedAt": "2026-11-02T09:56:06.924Z"
   }
 }
