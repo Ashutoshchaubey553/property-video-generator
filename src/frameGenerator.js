@@ -1,212 +1,273 @@
 /**
- * Image Frame Generator
- * Creates styled frames (PNG images) for each video scene using Canvas
+ * Ultra-Decorative Frame Generator (1080p Full HD)
+ * Creates luxury real estate frames with ornate gold filigree,
+ * glassmorphism panels, metallic crests, and decorative badges.
  */
 
-const { createCanvas, loadImage, registerFont } = require('canvas');
+const { createCanvas, loadImage } = require('canvas');
 const path = require('path');
 const fs = require('fs');
 
-const WIDTH = 1280;
-const HEIGHT = 720;
+const WIDTH = 1920;
+const HEIGHT = 1080;
 
-// Color palette for real estate videos
 const THEMES = {
   luxury: {
-    bg: '#1a1a2e',
-    accent: '#c9a84c',
+    bg: '#0a0b14',
+    gold1: '#f9e79f',
+    gold2: '#d4af37',
+    gold3: '#996515',
+    accent: '#d4af37',
     text: '#ffffff',
-    subtext: '#e0d5b5',
-    badge: '#c9a84c',
-    badgeText: '#1a1a2e',
-    overlay: 'rgba(26, 26, 46, 0.75)',
+    subtext: '#eedcba',
+    glassBg: 'rgba(12, 14, 28, 0.82)',
+    glassBorder: 'rgba(212, 175, 55, 0.65)',
+    glow: 'rgba(212, 175, 55, 0.35)',
   },
   modern: {
-    bg: '#0d1b2a',
+    bg: '#080e18',
+    gold1: '#80deea',
+    gold2: '#00bcd4',
+    gold3: '#006064',
     accent: '#00bcd4',
     text: '#ffffff',
-    subtext: '#b0bec5',
-    badge: '#00bcd4',
-    badgeText: '#0d1b2a',
-    overlay: 'rgba(13, 27, 42, 0.72)',
+    subtext: '#b2ebf2',
+    glassBg: 'rgba(8, 14, 24, 0.82)',
+    glassBorder: 'rgba(0, 188, 212, 0.65)',
+    glow: 'rgba(0, 188, 212, 0.35)',
   },
   classic: {
-    bg: '#2c1810',
-    accent: '#d4a853',
-    text: '#f5f0e8',
-    subtext: '#e8dcc8',
-    badge: '#d4a853',
-    badgeText: '#2c1810',
-    overlay: 'rgba(44, 24, 16, 0.70)',
+    bg: '#140c08',
+    gold1: '#ffe082',
+    gold2: '#ffb300',
+    gold3: '#ff6f00',
+    accent: '#ffb300',
+    text: '#ffffff',
+    subtext: '#ffe082',
+    glassBg: 'rgba(20, 12, 8, 0.82)',
+    glassBorder: 'rgba(255, 179, 0, 0.65)',
+    glow: 'rgba(255, 179, 0, 0.35)',
   },
 };
 
 /**
- * Draw a gradient background
+ * Draw luxurious metallic gold gradient
  */
-function drawBackground(ctx, colors) {
-  const gradient = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
-  gradient.addColorStop(0, colors.bg);
-  gradient.addColorStop(1, shadeColor(colors.bg, 40));
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+function createGoldGradient(ctx, x1, y1, x2, y2, theme = 'luxury') {
+  const t = THEMES[theme] || THEMES.luxury;
+  const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+  grad.addColorStop(0, t.gold1);
+  grad.addColorStop(0.3, t.gold2);
+  grad.addColorStop(0.7, t.gold1);
+  grad.addColorStop(1, t.gold3);
+  return grad;
 }
 
 /**
- * Draw decorative geometric elements
+ * Draw intricate ornamental corner filigree brackets
  */
-function drawDecorations(ctx, theme) {
-  const colors = THEMES[theme] || THEMES.luxury;
+function drawOrnateCorners(ctx, theme) {
+  const t = THEMES[theme] || THEMES.luxury;
+  const pad = 45;
+  const len = 120;
 
-  // Top-left corner accent
-  ctx.strokeStyle = colors.accent;
+  ctx.save();
+  ctx.strokeStyle = t.accent;
   ctx.lineWidth = 3;
-  ctx.globalAlpha = 0.6;
-  ctx.beginPath();
-  ctx.moveTo(40, 40);
-  ctx.lineTo(160, 40);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(40, 40);
-  ctx.lineTo(40, 160);
-  ctx.stroke();
+  ctx.shadowColor = t.glow;
+  ctx.shadowBlur = 12;
 
-  // Bottom-right corner accent
-  ctx.beginPath();
-  ctx.moveTo(WIDTH - 40, HEIGHT - 40);
-  ctx.lineTo(WIDTH - 160, HEIGHT - 40);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(WIDTH - 40, HEIGHT - 40);
-  ctx.lineTo(WIDTH - 40, HEIGHT - 160);
-  ctx.stroke();
+  // 1. Outer hairline border
+  ctx.strokeRect(pad, pad, WIDTH - pad * 2, HEIGHT - pad * 2);
 
-  // Subtle diagonal lines
-  ctx.globalAlpha = 0.05;
-  ctx.strokeStyle = colors.accent;
+  // 2. Inner thin border
   ctx.lineWidth = 1;
-  for (let i = -HEIGHT; i < WIDTH + HEIGHT; i += 60) {
+  ctx.globalAlpha = 0.55;
+  ctx.strokeRect(pad + 10, pad + 10, WIDTH - (pad + 10) * 2, HEIGHT - (pad + 10) * 2);
+  ctx.globalAlpha = 1.0;
+
+  // 3. Ornate Corner Brackets (All 4 corners)
+  const corners = [
+    { x: pad, y: pad, dx: 1, dy: 1 },                           // Top-Left
+    { x: WIDTH - pad, y: pad, dx: -1, dy: 1 },                  // Top-Right
+    { x: pad, y: HEIGHT - pad, dx: 1, dy: -1 },                 // Bottom-Left
+    { x: WIDTH - pad, y: HEIGHT - pad, dx: -1, dy: -1 },        // Bottom-Right
+  ];
+
+  corners.forEach(c => {
+    // Primary corner accent
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = createGoldGradient(ctx, c.x, c.y, c.x + c.dx * len, c.y + c.dy * len, theme);
     ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i + HEIGHT, HEIGHT);
+    ctx.moveTo(c.x, c.y + c.dy * len);
+    ctx.lineTo(c.x, c.y);
+    ctx.lineTo(c.x + c.dx * len, c.y);
     ctx.stroke();
-  }
 
-  ctx.globalAlpha = 1;
-}
+    // Secondary decorative stepped accent
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(c.x + c.dx * 16, c.y + c.dy * (len - 25));
+    ctx.lineTo(c.x + c.dx * 16, c.y + c.dy * 16);
+    ctx.lineTo(c.x + c.dx * (len - 25), c.y + c.dy * 16);
+    ctx.stroke();
 
-/**
- * Draw a badge/pill element
- */
-function drawBadge(ctx, text, x, y, colors) {
-  if (!text) return;
-  ctx.font = 'bold 16px Arial';
-  const textWidth = ctx.measureText(text).width;
-  const padX = 20;
-  const padY = 8;
-  const bw = textWidth + padX * 2;
-  const bh = 36;
-
-  // Badge background
-  ctx.fillStyle = colors.badge;
-  roundRect(ctx, x, y - bh / 2, bw, bh, 18);
-  ctx.fill();
-
-  // Badge text
-  ctx.fillStyle = colors.badgeText;
-  ctx.textAlign = 'center';
-  ctx.fillText(text.toUpperCase(), x + bw / 2, y + 5);
-}
-
-/**
- * Draw the main text overlay panel
- */
-function drawTextPanel(ctx, scene, colors) {
-  const { primary, secondary, badge } = scene.overlay;
-
-  // Semi-transparent panel at bottom
-  const panelH = 220;
-  const gradient = ctx.createLinearGradient(0, HEIGHT - panelH, 0, HEIGHT);
-  gradient.addColorStop(0, 'rgba(0,0,0,0)');
-  gradient.addColorStop(0.3, colors.overlay);
-  gradient.addColorStop(1, colors.overlay);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, HEIGHT - panelH, WIDTH, panelH);
-
-  // Accent line
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(60, HEIGHT - panelH + 20, 5, panelH - 40);
-
-  // Badge
-  if (badge) {
-    drawBadge(ctx, badge, 80, HEIGHT - panelH + 40, colors);
-  }
-
-  // Primary text (property name / main info)
-  ctx.textAlign = 'left';
-  ctx.fillStyle = colors.text;
-  const primaryFontSize = primary && primary.length > 30 ? 36 : 44;
-  ctx.font = `bold ${primaryFontSize}px Arial`;
-  ctx.shadowColor = 'rgba(0,0,0,0.8)';
-  ctx.shadowBlur = 8;
-
-  // Word-wrap primary text
-  const maxWidth = WIDTH - 120;
-  const lines = wrapText(ctx, primary || '', maxWidth);
-  lines.forEach((line, idx) => {
-    ctx.fillText(line, 80, HEIGHT - 140 + idx * (primaryFontSize + 8));
+    // Corner Diamond pip
+    ctx.fillStyle = t.gold1;
+    drawDiamond(ctx, c.x + c.dx * 28, c.y + c.dy * 28, 8);
   });
 
-  // Secondary text
-  if (secondary) {
-    ctx.fillStyle = colors.subtext;
-    ctx.font = '22px Arial';
-    ctx.shadowBlur = 4;
-    ctx.fillText(secondary, 80, HEIGHT - 50);
+  ctx.restore();
+}
+
+function drawDiamond(ctx, cx, cy, size) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size);
+  ctx.lineTo(cx + size, cy);
+  ctx.lineTo(cx, cy + size);
+  ctx.lineTo(cx - size, cy);
+  ctx.closePath();
+  ctx.fill();
+}
+
+/**
+ * Draw Regal Realty Assistant Top Header
+ */
+function drawRegalHeader(ctx, propertyName, theme = 'luxury') {
+  const t = THEMES[theme] || THEMES.luxury;
+
+  ctx.save();
+  // Header frosted glass pill
+  const pillW = 560;
+  const pillH = 58;
+  const pillX = 65;
+  const pillY = 65;
+
+  ctx.fillStyle = t.glassBg;
+  roundRect(ctx, pillX, pillY, pillW, pillH, 29);
+  ctx.fill();
+
+  ctx.strokeStyle = t.glassBorder;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Crest icon
+  ctx.fillStyle = t.gold1;
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('⚜️ REALTY ASSISTANT', pillX + 24, pillY + 38);
+
+  // Vertical gold divider
+  ctx.fillStyle = t.accent;
+  ctx.fillRect(pillX + 310, pillY + 14, 2, 30);
+
+  // Exclusive tag
+  ctx.font = 'bold 15px Arial';
+  ctx.fillStyle = t.subtext;
+  ctx.fillText('VIP EXCLUSIVE', pillX + 330, pillY + 38);
+
+  ctx.restore();
+}
+
+/**
+ * Draw Ornate Decorative Glassmorphism Bottom Panel
+ */
+function drawDecorativePanel(ctx, scene, theme = 'luxury') {
+  const t = THEMES[theme] || THEMES.luxury;
+  const { primary, secondary, badge } = scene.overlay || {};
+
+  const panelX = 80;
+  const panelW = WIDTH - 160;
+  const panelH = 260;
+  const panelY = HEIGHT - panelH - 75;
+
+  ctx.save();
+
+  // Outer glow shadow
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+  ctx.shadowBlur = 25;
+  ctx.shadowOffsetY = 10;
+
+  // Frosted Glass Base
+  const grad = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelH);
+  grad.addColorStop(0, 'rgba(14, 16, 32, 0.90)');
+  grad.addColorStop(1, 'rgba(8, 10, 20, 0.95)');
+  ctx.fillStyle = grad;
+  roundRect(ctx, panelX, panelY, panelW, panelH, 20);
+  ctx.fill();
+
+  // Metallic Golden Border
+  ctx.shadowColor = t.glow;
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = createGoldGradient(ctx, panelX, panelY, panelX + panelW, panelY + panelH, theme);
+  ctx.lineWidth = 2.5;
+  roundRect(ctx, panelX, panelY, panelW, panelH, 20);
+  ctx.stroke();
+
+  // Decorative Golden Ribbon / Badge
+  if (badge) {
+    const badgeW = 280;
+    const badgeH = 42;
+    const badgeX = panelX + 45;
+    const badgeY = panelY + 28;
+
+    const bGrad = createGoldGradient(ctx, badgeX, badgeY, badgeX + badgeW, badgeY + badgeH, theme);
+    ctx.fillStyle = bGrad;
+    roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 8);
+    ctx.fill();
+
+    // Badge Text
+    ctx.fillStyle = '#0a0b14';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`✦ ${badge.toUpperCase()} ✦`, badgeX + badgeW / 2, badgeY + 27);
   }
 
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
-}
-
-/**
- * Draw a top header bar
- */
-function drawHeader(ctx, propertyName, colors) {
-  // Top gradient bar
-  const gradient = ctx.createLinearGradient(0, 0, 0, 80);
-  gradient.addColorStop(0, 'rgba(0,0,0,0.7)');
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, WIDTH, 80);
-
-  // Property name top-left
-  ctx.font = 'bold 18px Arial';
-  ctx.fillStyle = colors.accent;
+  // Primary Feature / Title Text (Large & Bold with drop shadow)
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText('🏠 ' + (propertyName || 'Realty Assistant'), 60, 40);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+  ctx.shadowBlur = 12;
 
-  // Accent bar top
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(0, 0, WIDTH, 4);
+  const textLines = wrapText(ctx, primary || '', panelW - 100);
+  textLines.slice(0, 2).forEach((line, idx) => {
+    ctx.fillText(line, panelX + 45, panelY + 125 + idx * 52);
+  });
+
+  // Secondary subtext / Specs with gold diamond bullet
+  if (secondary) {
+    ctx.fillStyle = t.subtext;
+    ctx.font = 'bold 24px Arial';
+    ctx.shadowBlur = 6;
+    ctx.fillText(`◆ ${secondary}`, panelX + 48, panelY + 225);
+  }
+
+  // Decorative corner flourishes inside the card
+  ctx.strokeStyle = t.accent;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(panelX + panelW - 40, panelY + 20);
+  ctx.lineTo(panelX + panelW - 20, panelY + 20);
+  ctx.lineTo(panelX + panelW - 20, panelY + 40);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 /**
- * Generate a scene frame with property image background
+ * Render a Scene Frame with 4K Image and Decorative Overlays
  */
 async function generateFrame(scene, imagePath, propertyName, theme = 'luxury') {
-  const colors = THEMES[theme] || THEMES.luxury;
+  const t = THEMES[theme] || THEMES.luxury;
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
 
-  // 1. Draw background (solid color fallback)
-  drawBackground(ctx, colors);
-
-  // 2. Draw image if available
+  // 1. Draw 4K Image (or decorative background)
   if (imagePath && fs.existsSync(imagePath)) {
     try {
       const img = await loadImage(imagePath);
-      // Scale to cover
+      // Zoom & crop to fill 1920x1080
       const scale = Math.max(WIDTH / img.width, HEIGHT / img.height);
       const sw = img.width * scale;
       const sh = img.height * scale;
@@ -214,168 +275,218 @@ async function generateFrame(scene, imagePath, propertyName, theme = 'luxury') {
       const sy = (HEIGHT - sh) / 2;
       ctx.drawImage(img, sx, sy, sw, sh);
 
-      // Dark overlay on the image
-      ctx.fillStyle = colors.overlay;
+      // Subtle rich vignette / tint
+      const vignette = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 400, WIDTH / 2, HEIGHT / 2, WIDTH);
+      vignette.addColorStop(0, 'rgba(0,0,0,0.15)');
+      vignette.addColorStop(1, 'rgba(5, 7, 18, 0.75)');
+      ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
     } catch (e) {
-      // Image load failed, use synthetic background
-      drawDecorations(ctx, theme);
+      drawFallbackPattern(ctx, t);
     }
   } else {
-    // No image - draw decorative background
-    drawDecorations(ctx, theme);
-    // Draw a centered real estate icon placeholder
-    drawPropertyIcon(ctx, colors);
+    drawFallbackPattern(ctx, t);
   }
 
-  // 3. Draw UI elements
-  drawHeader(ctx, propertyName, colors);
-  drawTextPanel(ctx, scene, colors);
+  // 2. Draw Ornate Framing & Header
+  drawOrnateCorners(ctx, theme);
+  drawRegalHeader(ctx, propertyName, theme);
+
+  // 3. Draw Decorative Glassmorphic Info Panel
+  drawDecorativePanel(ctx, scene, theme);
 
   return canvas.toBuffer('image/png');
 }
 
 /**
- * Generate a synthetic property icon when no image is available
- */
-function drawPropertyIcon(ctx, colors) {
-  const cx = WIDTH / 2;
-  const cy = HEIGHT / 2 - 30;
-  const size = 120;
-
-  ctx.strokeStyle = colors.accent;
-  ctx.lineWidth = 4;
-  ctx.globalAlpha = 0.3;
-
-  // House shape
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - size);
-  ctx.lineTo(cx + size, cy - size * 0.2);
-  ctx.lineTo(cx + size, cy + size * 0.6);
-  ctx.lineTo(cx - size, cy + size * 0.6);
-  ctx.lineTo(cx - size, cy - size * 0.2);
-  ctx.closePath();
-  ctx.stroke();
-
-  // Door
-  ctx.strokeRect(cx - 25, cy + size * 0.1, 50, size * 0.5);
-
-  // Windows
-  ctx.strokeRect(cx - size * 0.7, cy - size * 0.05, 45, 35);
-  ctx.strokeRect(cx + size * 0.4, cy - size * 0.05, 45, 35);
-
-  ctx.globalAlpha = 1;
-}
-
-/**
- * Generate a special opening title frame
+ * Opening Title Frame — Ultra-Decorative Gold Presentation
  */
 async function generateTitleFrame(property, theme = 'luxury') {
-  const colors = THEMES[theme] || THEMES.luxury;
+  const t = THEMES[theme] || THEMES.luxury;
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
 
   // Background
-  drawBackground(ctx, colors);
-  drawDecorations(ctx, theme);
+  const grad = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 100, WIDTH / 2, HEIGHT / 2, WIDTH);
+  grad.addColorStop(0, '#1c1f3b');
+  grad.addColorStop(1, '#080a14');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // Large centered title
+  // Ornate geometric pattern
+  drawDecorativeGrid(ctx, t);
+  drawOrnateCorners(ctx, theme);
+
+  ctx.save();
   ctx.textAlign = 'center';
 
-  // Property type badge
-  const badge = property.type || 'Real Estate';
-  ctx.font = 'bold 18px Arial';
-  const bw = ctx.measureText(badge.toUpperCase()).width + 48;
-  ctx.fillStyle = colors.badge;
-  roundRect(ctx, WIDTH / 2 - bw / 2, HEIGHT / 2 - 160, bw, 40, 20);
-  ctx.fill();
-  ctx.fillStyle = colors.badgeText;
-  ctx.fillText(badge.toUpperCase(), WIDTH / 2, HEIGHT / 2 - 133);
+  // Royal Crown / Brand Crest
+  ctx.font = '54px Arial';
+  ctx.fillText('⚜️', WIDTH / 2, HEIGHT / 2 - 250);
 
-  // Property name
-  ctx.fillStyle = colors.text;
-  ctx.font = 'bold 64px Arial';
-  ctx.shadowColor = 'rgba(0,0,0,0.8)';
-  ctx.shadowBlur = 15;
-  const nameLines = wrapText(ctx, property.name || 'Luxury Property', WIDTH - 120);
-  nameLines.forEach((line, idx) => {
-    ctx.fillText(line, WIDTH / 2, HEIGHT / 2 - 60 + idx * 74);
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = t.gold1;
+  ctx.letterSpacing = '6px';
+  ctx.fillText('REALTY ASSISTANT • PREMIER REAL ESTATE ADVISORY', WIDTH / 2, HEIGHT / 2 - 190);
+
+  // Decorative Golden Divider Line
+  drawGoldDivider(ctx, WIDTH / 2, HEIGHT / 2 - 150, 480, theme);
+
+  // Property Type Badge
+  const badgeW = 420;
+  const badgeH = 50;
+  const bGrad = createGoldGradient(ctx, WIDTH / 2 - badgeW / 2, HEIGHT / 2 - 120, WIDTH / 2 + badgeW / 2, HEIGHT / 2 - 70, theme);
+  ctx.fillStyle = bGrad;
+  roundRect(ctx, WIDTH / 2 - badgeW / 2, HEIGHT / 2 - 120, badgeW, badgeH, 25);
+  ctx.fill();
+
+  ctx.fillStyle = '#0a0b14';
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText(`✦ ${(property.type || 'LUXURY RESIDENCE').toUpperCase()} ✦`, WIDTH / 2, HEIGHT / 2 - 87);
+
+  // Property Name in Gilded Typography
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 74px Arial';
+  ctx.shadowColor = t.glow;
+  ctx.shadowBlur = 30;
+
+  const nameLines = wrapText(ctx, property.name || 'The Grand Crest', WIDTH - 240);
+  nameLines.slice(0, 2).forEach((line, idx) => {
+    ctx.fillText(line, WIDTH / 2, HEIGHT / 2 + 10 + idx * 85);
   });
 
-  // Separator line
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(WIDTH / 2 - 80, HEIGHT / 2 + 20, 160, 4);
+  // Second Divider
+  drawGoldDivider(ctx, WIDTH / 2, HEIGHT / 2 + 120, 600, theme);
 
-  // Location
-  if (property.location) {
-    ctx.fillStyle = colors.subtext;
-    ctx.font = '28px Arial';
-    ctx.shadowBlur = 6;
-    ctx.fillText('📍 ' + property.location, WIDTH / 2, HEIGHT / 2 + 80);
-  }
+  // Location with Pin
+  ctx.fillStyle = t.subtext;
+  ctx.font = 'bold 30px Arial';
+  ctx.shadowBlur = 10;
+  ctx.fillText(`📍 ${property.location || 'Noida Express Highway'}`, WIDTH / 2, HEIGHT / 2 + 180);
 
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
+  // Verified Badge at bottom
+  ctx.font = '18px Arial';
+  ctx.fillStyle = t.gold2;
+  ctx.fillText('★ 100% VERIFIED EXCLUSIVE LISTING ★', WIDTH / 2, HEIGHT - 110);
 
-  // Top accent bar
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(0, 0, WIDTH, 5);
-  ctx.fillRect(0, HEIGHT - 5, WIDTH, 5);
-
+  ctx.restore();
   return canvas.toBuffer('image/png');
 }
 
 /**
- * Generate a CTA (Call to Action) closing frame
+ * CTA Frame — Regal VIP Closing Card
  */
 async function generateCTAFrame(property, theme = 'luxury') {
-  const colors = THEMES[theme] || THEMES.luxury;
+  const t = THEMES[theme] || THEMES.luxury;
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
 
-  drawBackground(ctx, colors);
-  drawDecorations(ctx, theme);
+  // Background
+  const grad = ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, 100, WIDTH / 2, HEIGHT / 2, WIDTH);
+  grad.addColorStop(0, '#1c1f3b');
+  grad.addColorStop(1, '#080a14');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+  drawDecorativeGrid(ctx, t);
+  drawOrnateCorners(ctx, theme);
+
+  ctx.save();
   ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 10;
 
-  // CTA headline
-  ctx.fillStyle = colors.accent;
-  ctx.font = 'bold 52px Arial';
-  ctx.fillText(property.cta || 'Schedule a Visit Today!', WIDTH / 2, HEIGHT / 2 - 80);
+  // Royal Crest
+  ctx.font = '54px Arial';
+  ctx.fillText('🏛️', WIDTH / 2, HEIGHT / 2 - 250);
+
+  // CTA Headline
+  ctx.fillStyle = createGoldGradient(ctx, WIDTH / 2 - 400, 0, WIDTH / 2 + 400, 0, theme);
+  ctx.font = 'bold 56px Arial';
+  ctx.shadowColor = t.glow;
+  ctx.shadowBlur = 24;
+  ctx.fillText(property.cta || 'Schedule Your Exclusive VIP Site Visit!', WIDTH / 2, HEIGHT / 2 - 160);
+
+  drawGoldDivider(ctx, WIDTH / 2, HEIGHT / 2 - 110, 500, theme);
 
   // Property name reminder
-  ctx.fillStyle = colors.text;
-  ctx.font = 'bold 32px Arial';
-  ctx.fillText(property.name || 'Dream Property', WIDTH / 2, HEIGHT / 2 - 10);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 38px Arial';
+  ctx.fillText(property.name || 'The Grand Crest', WIDTH / 2, HEIGHT / 2 - 40);
 
-  // Accent line
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(WIDTH / 2 - 60, HEIGHT / 2 + 20, 120, 3);
+  // VIP Contact Box
+  const boxW = 860;
+  const boxH = 140;
+  const boxX = WIDTH / 2 - boxW / 2;
+  const boxY = HEIGHT / 2 + 25;
 
-  // Contact info
-  if (property.contact) {
-    ctx.fillStyle = colors.subtext;
-    ctx.font = '26px Arial';
-    ctx.fillText('📞 ' + property.contact, WIDTH / 2, HEIGHT / 2 + 80);
-  }
+  ctx.fillStyle = t.glassBg;
+  roundRect(ctx, boxX, boxY, boxW, boxH, 20);
+  ctx.fill();
 
-  // Bottom tag
-  ctx.fillStyle = colors.text;
-  ctx.font = '18px Arial';
-  ctx.globalAlpha = 0.6;
-  ctx.fillText('Powered by AI Property Video Generator', WIDTH / 2, HEIGHT - 40);
-  ctx.globalAlpha = 1;
+  ctx.strokeStyle = t.glassBorder;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
 
-  ctx.fillStyle = colors.accent;
-  ctx.fillRect(0, 0, WIDTH, 5);
-  ctx.fillRect(0, HEIGHT - 5, WIDTH, 5);
+  // Contact line
+  ctx.fillStyle = t.gold1;
+  ctx.font = 'bold 34px Arial';
+  ctx.fillText(`📞  ${property.contact || '+91 99990 12345'}`, WIDTH / 2, boxY + 62);
 
+  ctx.fillStyle = t.subtext;
+  ctx.font = '22px Arial';
+  ctx.fillText('Direct Sales Desk  •  Realty Assistant Pvt. Ltd.', WIDTH / 2, boxY + 105);
+
+  // Footer Tagline
+  ctx.fillStyle = t.gold2;
+  ctx.font = 'bold 18px Arial';
+  ctx.fillText('✦ YOUR TRUSTED LUXURY REAL ESTATE PARTNER ✦', WIDTH / 2, HEIGHT - 100);
+
+  ctx.restore();
   return canvas.toBuffer('image/png');
 }
 
-// Utility: wrap text to multiple lines
+/**
+ * Draw a decorative golden divider with a center diamond
+ */
+function drawGoldDivider(ctx, cx, cy, width, theme) {
+  const t = THEMES[theme] || THEMES.luxury;
+  ctx.save();
+  ctx.strokeStyle = createGoldGradient(ctx, cx - width / 2, cy, cx + width / 2, cy, theme);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - width / 2, cy);
+  ctx.lineTo(cx - 20, cy);
+  ctx.moveTo(cx + 20, cy);
+  ctx.lineTo(cx + width / 2, cy);
+  ctx.stroke();
+
+  ctx.fillStyle = t.gold1;
+  drawDiamond(ctx, cx, cy, 7);
+  ctx.restore();
+}
+
+function drawDecorativeGrid(ctx, t) {
+  ctx.save();
+  ctx.strokeStyle = t.accent;
+  ctx.lineWidth = 0.5;
+  ctx.globalAlpha = 0.05;
+  for (let x = 0; x < WIDTH; x += 80) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT); ctx.stroke();
+  }
+  for (let y = 0; y < HEIGHT; y += 80) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFallbackPattern(ctx, t) {
+  const grad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+  grad.addColorStop(0, '#0a0d1d');
+  grad.addColorStop(1, '#1b1f3c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  drawDecorativeGrid(ctx, t);
+}
+
 function wrapText(ctx, text, maxWidth) {
   const words = (text || '').split(' ');
   const lines = [];
@@ -394,7 +505,6 @@ function wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
-// Utility: round rectangle
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -409,17 +519,6 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Utility: shade a hex color
-function shadeColor(color, percent) {
-  let R = parseInt(color.substring(1, 3), 16);
-  let G = parseInt(color.substring(3, 5), 16);
-  let B = parseInt(color.substring(5, 7), 16);
-  R = Math.min(255, R + percent);
-  G = Math.min(255, G + percent);
-  B = Math.min(255, B + percent);
-  return '#' + R.toString(16).padStart(2, '0') + G.toString(16).padStart(2, '0') + B.toString(16).padStart(2, '0');
-}
-
 module.exports = {
   generateFrame,
   generateTitleFrame,
@@ -427,4 +526,3 @@ module.exports = {
   WIDTH,
   HEIGHT,
 };
-

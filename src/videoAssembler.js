@@ -49,7 +49,7 @@ function createVideoFromFrames(frames, outputPath, options = {}) {
       .inputOptions(['-f concat', '-safe 0']);
 
     const outputOpts = [
-      `-vf scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${fps}`,
+      `-vf scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=${fps}`,
       '-c:v libx264',
       '-preset fast',
       `-crf ${quality}`,
